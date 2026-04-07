@@ -574,7 +574,7 @@ body {
         </div>
         <div class="kpi-card">
           <div class="kpi-label">M值均值</div>
-          <div class="kpi-val green">{{ brandStat.avgM }}</div>
+          <div class="kpi-val green">{{ brandStat.avgM }}%</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">1元交易额均值</div>
@@ -640,7 +640,7 @@ body {
             <tr v-for="r in brandRows" :key="r.brand">
               <td class="td-brand">{{ r.brand }}</td>
               <td><span class="cat-tag">{{ r.category }}</span></td>
-              <td class="td-num">{{ fmtN(r.mVal, 4) }}</td>
+              <td class="td-num">{{ pct(r.mVal) }}</td>
               <td class="td-num"><span :class="chgClass(r.mChg)">{{ pct(r.mChg) }}</span></td>
               <td class="td-num"><span :class="chgClass(r.expChg)">{{ pct(r.expChg) }}</span></td>
               <td class="td-num highlight">{{ r.revenue }}</td>
@@ -1316,9 +1316,18 @@ function renderBrand(brandRows) {
   const c2 = getChart('c-brand-m');
   if (c2) {
     const valid = brandRows.filter(r => r.mVal !== null);
-    c2.setOption(pieOpt(
-      valid.map((r, i) => ({ name: r.brand, value: r.mVal.toFixed(4), itemStyle: { color: PALETTE[i % PALETTE.length] } }))
-    ));
+    c2.setOption({
+      ...pieOpt(valid.map((r, i) => ({
+        name: r.brand,
+        value: (r.mVal * 100).toFixed(2),
+        itemStyle: { color: PALETTE[i % PALETTE.length] }
+      }))),
+      tooltip: {
+        backgroundColor: '#1c2230', borderColor: '#30363d',
+        textStyle: { color: '#e6edf3' }, trigger: 'item',
+        formatter: p => `${p.name}<br/>${p.value}% (占比${p.percent}%)`
+      }
+    });
   }
 
   // 图3：1元交易额
@@ -1591,7 +1600,7 @@ createApp({
     const brandStat = computed(() => {
       const rows = brandRows.value;
       const totalRevenue = sum(rows.map(r => r.revNum)).toFixed(2);
-      const avgM   = (avg(rows.map(r => r.mVal))   || 0).toFixed(4);
+      const avgM   = ((avg(rows.map(r => r.mVal))   || 0) * 100).toFixed(2);
       const avgROI = (avg(rows.map(r => r.roi))     || 0).toFixed(2);
       const avgExp = (avg(rows.map(r => r.exp1y))   || 0).toFixed(2);
       const mUp    = rows.filter(r => r.mChg !== null && r.mChg > 0).length;
