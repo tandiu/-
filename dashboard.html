@@ -1580,7 +1580,15 @@ createApp({
       allWeeks.value.find(w => w.week === selectedWeek.value) || null
     );
 
-    const annualRows  = computed(() => curWeek.value?.annualRows  || []);
+    const annualRows  = computed(() => {
+      const rows = curWeek.value?.annualRows || [];
+      return [...rows].sort((a, b) => {
+        if (a.diff === null && b.diff === null) return 0;
+        if (a.diff === null) return 1;
+        if (b.diff === null) return -1;
+        return a.diff - b.diff;
+      });
+    });
     const brandRows   = computed(() => curWeek.value?.brandRows   || []);
     const productRows = computed(() => curWeek.value?.productRows || []);
 
